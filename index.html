@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Accelerometer Example</title>
+</head>
+<body>
+  <h1>Accelerometer Sensor</h1>
+  <p>X: <span id="x">0</span></p>
+  <p>Y: <span id="y">0</span></p>
+  <p>Z: <span id="z">0</span></p>
+
+  <script>
+    if ('Accelerometer' in window) {
+      try {
+        const sensor = new Accelerometer({ frequency: 60 });
+
+        sensor.addEventListener('reading', () => {
+          document.getElementById('x').textContent = sensor.x.toFixed(2);
+          document.getElementById('y').textContent = sensor.y.toFixed(2);
+          document.getElementById('z').textContent = sensor.z.toFixed(2);
+        });
+
+        sensor.start();
+      } catch (error) {
+        console.error('Sensor error:', error);
+      }
+    } else {
+      alert('Accelerometer not supported in this browser.');
+    }
+  </script>
+</body>
+</html>
