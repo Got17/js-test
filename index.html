@@ -2,32 +2,66 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Accelerometer Example</title>
+  <title>Easy WebAuthn Demo</title>
 </head>
 <body>
-  <h1>Accelerometer Sensor</h1>
-  <p>X: <span id="x">0</span></p>
-  <p>Y: <span id="y">0</span></p>
-  <p>Z: <span id="z">0</span></p>
+  <h1>🔐 WebAuthn Demo</h1>
+  <button id="registerBtn">Register</button>
+  <button id="loginBtn">Login</button>
 
   <script>
-    if ('Accelerometer' in window) {
+    // Convert string to ArrayBuffer
+    const strToBuf = (str) => new TextEncoder().encode(str);
+
+    let savedCredentialId = null;
+
+    // 🔐 Register Credential
+    document.getElementById("registerBtn").onclick = async () => {
+      const publicKey = {
+        challenge: strToBuf("random-challenge"),
+        rp: { name: "My Demo App" },
+        user: {
+          id: strToBuf("user-id"),
+          name: "user@example.com",
+          displayName: "Test User"
+        },
+        pubKeyCredParams: [{ type: "public-key", alg: -7 }] // ES256
+      };
+
       try {
-        const sensor = new Accelerometer({ frequency: 60 });
-
-        sensor.addEventListener('reading', () => {
-          document.getElementById('x').textContent = sensor.x.toFixed(2);
-          document.getElementById('y').textContent = sensor.y.toFixed(2);
-          document.getElementById('z').textContent = sensor.z.toFixed(2);
-        });
-
-        sensor.start();
-      } catch (error) {
-        console.error('Sensor error:', error);
+        const cred = await navigator.credentials.create({ publicKey });
+        savedCredentialId = cred.rawId;
+        alert("✅ Registered successfully!");
+        console.log("Credential:", cred);
+      } catch (err) {
+        alert("❌ Registration failed");
+        console.error(err);
       }
-    } else {
-      alert('Accelerometer not supported in this browser.');
-    }
+    };
+
+    // 🔑 Login (Get Assertion)
+    document.getElementById("loginBtn").onclick = async () => {
+      if (!savedCredentialId) return alert("❗ Register first!");
+
+      const publicKey = {
+        challenge: strToBuf("random-challenge"),
+        allowCredentials: [
+          {
+            id: savedCredentialId,
+            type: "public-key"
+          }
+        ]
+      };
+
+      try {
+        const assertion = await navigator.credentials.get({ publicKey });
+        alert("✅ Login successful!");
+        console.log("Assertion:", assertion);
+      } catch (err) {
+        alert("❌ Login failed");
+        console.error(err);
+      }
+    };
   </script>
 </body>
 </html>
